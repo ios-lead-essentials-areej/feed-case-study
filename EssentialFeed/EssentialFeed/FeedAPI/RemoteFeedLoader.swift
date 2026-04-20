@@ -28,6 +28,7 @@ public final class RemoteFeedLoader {
     }
     
     public func load(completion: @escaping (Error) -> Void = { _ in }) {
+        ///mapping the domain error with our enum type error
         client.get(from: url) { error in
             completion(.connectivity)
         }
