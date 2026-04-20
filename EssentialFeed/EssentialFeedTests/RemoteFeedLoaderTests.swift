@@ -8,21 +8,24 @@
 import XCTest
 
 class RemoteFeedLoader {
+    let client: HTTPClient
+    
+    init(client: HTTPClient) {
+        self.client = client
+    }
+    
     func load() {
-        return HTTPClient.shared.get(from: URL(string: "https://a-url.com")!)
-        //this mean we're mixing responsiblities, responsibility of invoking a method in an object, and responsibility of locating this object
-        //if you're using a shared property I know how to locate this object in mem. which I don't need that, if we inject we've more control on our code
-        //we should refactor it to composition -> through injection
+        return client.get(from: URL(string: "https://a-url.com")!)
+      
     }
 }
 
-class HTTPClient {
-    static var shared = HTTPClient() // this means it's a global var not singleton anymore
-    func get(from url: URL) {}
+protocol HTTPClient {
+    func get(from url: URL)
 }
 
 class HTTPClientSpy: HTTPClient {
-    override func get(from url: URL) {
+    func get(from url: URL) {
         requestedURL = url
     }
     var requestedURL: URL?
@@ -32,8 +35,7 @@ final class RemoteFeedLoaderTests: XCTestCase {
 
     func test_init_doesNotRequestsDataFromURL() {
         let Client = HTTPClientSpy()
-        HTTPClient.shared = Client
-        _ = RemoteFeedLoader()
+        _ = RemoteFeedLoader(client: Client)
         
         XCTAssertNil(Client.requestedURL)
     }
@@ -41,8 +43,7 @@ final class RemoteFeedLoaderTests: XCTestCase {
     func test_load_requestDataFromURL() {
         //arrange <Given>
         let Client = HTTPClientSpy()
-        HTTPClient.shared = Client
-        let sut = RemoteFeedLoader()
+        let sut = RemoteFeedLoader(client: Client)
         
         //Act <when we invoke>
         sut.load()
