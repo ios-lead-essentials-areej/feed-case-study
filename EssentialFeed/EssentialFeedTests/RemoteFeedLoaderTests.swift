@@ -43,15 +43,16 @@ final class RemoteFeedLoaderTests: XCTestCase {
     }
     
     func test_load_deliversErrorOnClientError() {
-        //given the sut its HTTP that will always fail with the given error (stubbed behavior), but we're using a SPY 
         let (sut, client) = makeSUT()
-        client.error = NSError(domain: "Test", code: 0)
-        //Act: when we tell the sut to load
+
+        //before clientError was in the given part, but now it's part of the acting parrt, we tell the sut to load and complete the clients HTTP req with an error.
         var capturedErrors = [RemoteFeedLoader.Error]()
         sut.load {
             capturedErrors.append($0)
         }
-        //Assert: captured the load error to be a connectivity error
+        let clientError = NSError(domain: "Test", code: 0)
+        client.completions[0](clientError)
+        
         XCTAssertEqual(capturedErrors, [.connectivity])
     }
     
@@ -66,12 +67,11 @@ final class RemoteFeedLoaderTests: XCTestCase {
     
     private class HTTPClientSpy: HTTPClient {
         var requestedURLs = [URL]()
-        var error: Error?
+        var completions = [(Error) -> Void]()
         
         func get(from url: URL, completion: @escaping (Error) -> Void) {
-            if let error = error {
-                completion(error)
-            }
+            //so now we're not stubbing we just accumalte all proprties we received
+            completions.append(completion)
             requestedURLs.append(url)
         }
     }
