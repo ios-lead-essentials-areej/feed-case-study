@@ -10,11 +10,14 @@ import XCTest
 class RemoteFeedLoader {
     func load() {
         return HTTPClient.shared.get(from: URL(string: "https://a-url.com")!)
+        //this mean we're mixing responsiblities, responsibility of invoking a method in an object, and responsibility of locating this object
+        //if you're using a shared property I know how to locate this object in mem. which I don't need that, if we inject we've more control on our code
+        //we should refactor it to composition -> through injection
     }
 }
 
 class HTTPClient {
-    static var shared = HTTPClient()
+    static var shared = HTTPClient() // this means it's a global var not singleton anymore
     func get(from url: URL) {}
 }
 
