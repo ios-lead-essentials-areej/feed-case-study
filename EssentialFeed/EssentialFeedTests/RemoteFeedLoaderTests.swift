@@ -85,7 +85,13 @@ final class RemoteFeedLoaderTests: XCTestCase {
         
       ///we want to capture the result json, but now .load func only capture errors, so we need to change it into results
         
+        var capturedResults = [RemoteFeedLoader.Result]()
+        sut.load { capturedResults.append($0) }
         
+        let emptyjsonList = Data.init("{\"items\": []}".utf8)
+        client.complete(withStatusCode: 200, data: emptyjsonList)
+        
+        XCTAssertEqual(capturedResults, [.success([])])
     }
     
     // MARK: - Helpers
