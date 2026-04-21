@@ -28,6 +28,6 @@ extension FeedItem: Decodable {
         case id
         case description
         case location
-        case imageURL = "image"
+        case imageURL = "image" ///feed loader should not leaking  because it doesn depend on any thing 
     }
 }
