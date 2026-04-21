@@ -71,12 +71,6 @@ final class RemoteFeedLoaderTests: XCTestCase {
     func test_load_deliversErrorOn200HTTPResponseWithInvalidJson() {
         let (sut, client) = makeSUT()
         
-      ///we want to capture the result json, but now .load func only capture errors, so we need to change it into results
-    }
-    
-    func test_load_deliversNoItemOn200HTTPResponseWithEmptyJSONList() {
-        let (sut, client) = makeSUT()
-        
         expect(sut,
                toCompleteWithError: .invalidData,
                when: {
@@ -84,6 +78,14 @@ final class RemoteFeedLoaderTests: XCTestCase {
             client.complete(withStatusCode: 200, data: invalidJson)
             
         })
+    }
+    
+    func test_load_deliversNoItemOn200HTTPResponseWithEmptyJSONList() {
+        let (sut, client) = makeSUT()
+        
+      ///we want to capture the result json, but now .load func only capture errors, so we need to change it into results
+        
+        
     }
     
     // MARK: - Helpers
