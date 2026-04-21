@@ -9,7 +9,7 @@ import Foundation
 
 ///we set it as public, because other modules will conform to it
 public protocol HTTPClient {
-    func get(from url: URL, completion: @escaping (Error) -> Void)
+    func get(from url: URL, completion: @escaping (Error?, HTTPURLResponse?) -> Void)
 }
 
 ///we set it as public, because other modules will use it and creat
@@ -20,6 +20,7 @@ public final class RemoteFeedLoader {
     
     public enum Error: Swift.Error {
         case connectivity
+        case invalidData
     }
     
     public init(url: URL, client: HTTPClient) {
@@ -29,8 +30,13 @@ public final class RemoteFeedLoader {
     
     public func load(completion: @escaping (Error) -> Void) {
         ///mapping the domain error with our enum type error
-        client.get(from: url) { error in
-            completion(.connectivity)
+        client.get(from: url) { error, response in
+            
+            if response != nil {
+                completion(.invalidData)
+            } else {
+                completion(.connectivity)
+            }
         }
     }
 }
