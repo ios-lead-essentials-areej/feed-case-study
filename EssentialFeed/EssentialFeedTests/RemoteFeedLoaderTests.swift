@@ -67,17 +67,20 @@ final class RemoteFeedLoaderTests: XCTestCase {
     }
     
     private class HTTPClientSpy: HTTPClient {
-        var requestedURLs = [URL]()
-        var completions = [(Error) -> Void]()
+        //the spy's job is to capture the messages (invocations) in a clear and comprehensice way, how many times the messages was invoked, with what parameters and in which order.
+        // we can combine into one signle arrY (Invoking behaviour message)
+        var requestedURLs: [URL] {
+            return messages.map { $0.url }
+        }
         
+        private var messages = [(url: URL, completion: (Error) -> Void)]()
+
         func get(from url: URL, completion: @escaping (Error) -> Void) {
-            //so now we're not stubbing we just accumalte all proprties we received
-            completions.append(completion)
-            requestedURLs.append(url)
+            messages.append((url, completion))
         }
         
         func complete(with error: Error, at index: Int = 0) {
-            completions[index](error)
+            messages[index].completion(error)
         }
     }
 }
