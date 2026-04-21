@@ -71,6 +71,12 @@ final class RemoteFeedLoaderTests: XCTestCase {
     func test_load_deliversErrorOn200HTTPResponseWithInvalidJson() {
         let (sut, client) = makeSUT()
         
+      ///we want to capture the result json, but now .load func only capture errors, so we need to change it into results
+    }
+    
+    func test_load_deliversNoItemOn200HTTPResponseWithEmptyJSONList() {
+        let (sut, client) = makeSUT()
+        
         expect(sut,
                toCompleteWithError: .invalidData,
                when: {
@@ -93,16 +99,16 @@ final class RemoteFeedLoaderTests: XCTestCase {
     
     //to handle duplication logic, only action and error is diff
     private func expect(_ sut: RemoteFeedLoader,
-                        toCompleteWithError error: RemoteFeedLoader.Error,
+    toCompleteWithError error: RemoteFeedLoader.Error,
                         when action: () -> Void,
                         file: StaticString = #filePath,
                         line: UInt = #line) { ///adding file and line so when it fails-> filed to the exact line  of code not on tne assertion here
-        var capturedErrors = [RemoteFeedLoader.Error]()
+        var capturedErrors = [RemoteFeedLoader.Result]()
         sut.load { capturedErrors.append($0) }
         
         action()
         
-        XCTAssertEqual(capturedErrors, [error], file: file, line: line)
+        XCTAssertEqual(capturedErrors, [.failure(error)], file: file, line: line)
     }
 
     private class HTTPClientSpy: HTTPClient {
