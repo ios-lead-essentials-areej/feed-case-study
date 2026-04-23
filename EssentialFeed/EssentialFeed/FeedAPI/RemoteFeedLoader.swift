@@ -43,13 +43,12 @@ public final class RemoteFeedLoader {
             
             switch result {
             case let .success(data, response):
-                if response.statusCode == 200,
-                   let root = try? JSONDecoder().decode(Root.self, from: data) {
-                    completion(.success(root.items.map {$0.item} ))
-                } else {
+                do {
+                    let items = try FeedItemMapper.map(data, response)
+                    completion(.success(items))
+                } catch {
                     completion(.failure(.invalidData))
                 }
-               
             case .failure:
                 completion(.failure(.connectivity))
             }
@@ -57,20 +56,30 @@ public final class RemoteFeedLoader {
     }
 }
 
-private struct Root: Decodable {
-    let items: [Item]
-}
+private class FeedItemMapper {
+    private struct Root: Decodable {
+        let items: [Item]
+    }
 
-private struct Item: Decodable {
-    let id: UUID
-    let description: String?
-    let location: String?
-    let image: URL // the correct key from API
-    
-    var item: FeedItem { //so now the FeeItem doesnt know about our api knowlege, it's an implementation details that is leaking into more abstract, higher level module
-        return FeedItem(id: id,
-                        description: description,
-                        location: location,
-                        imageURL: image)
+    private struct Item: Decodable {
+        let id: UUID
+        let description: String?
+        let location: String?
+        let image: URL // the correct key from API
+        
+        var item: FeedItem { //so now the FeeItem doesnt know about our api knowlege, it's an implementation details that is leaking into more abstract, higher level module
+            return FeedItem(id: id,
+                            description: description,
+                            location: location,
+                            imageURL: image)
+        }
+    }
+
+    static func map(_ data: Data, _ response: HTTPURLResponse) throws -> [FeedItem] {
+        guard response.statusCode == 200 else {
+            throw RemoteFeedLoader.Error.invalidData
+        }
+        let root = try JSONDecoder().decode(Root.self, from: data)
+        return root.items.map {$0.item }
     }
 }
