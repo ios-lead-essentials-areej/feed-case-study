@@ -22,12 +22,3 @@ public struct FeedItem: Equatable {
         self.imageURL = imageURL
     }
 }
-
-extension FeedItem: Decodable {
-    private enum CodingKeys: String, CodingKey {
-        case id
-        case description
-        case location
-        case imageURL = "image" ///feed loader should not leaking  because it doesn depend on any thing 
-    }
-}
