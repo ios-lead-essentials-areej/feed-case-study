@@ -193,18 +193,33 @@ final class RemoteFeedLoaderTests: XCTestCase {
     //to handle duplication logic, only action and error is diff
     private func expect(
         _ sut: RemoteFeedLoader,
-        toCompleteWith result: RemoteFeedLoader.Result,
+        toCompleteWith expectedResult: RemoteFeedLoader.Result,
         when action: () -> Void,
         file: StaticString = #filePath,
         line: UInt = #line
     ) {
+        //but since its async load we need:
+        let exp = expectation(description: "Wait for load completion")
+        
         ///adding file and line so when it fails-> filed to the exact line  of code not on tne assertion here
-        var capturedResults = [RemoteFeedLoader.Result]()
-        sut.load { capturedResults.append($0) }
+        /// we need to not capture results anymore and compare the values we need to unwrap the Result type and compare the values inside the Results
+        sut.load { receivedResults in
+            switch (receivedResults, expectedResult) {
+            case let (.success(receivedItems), .success(expectedItems)):
+                XCTAssertEqual(receivedItems, expectedItems, file: file, line: line)
+            case let (.failure(receivedError), .failure(expectedError)):
+                XCTAssertEqual(receivedError, expectedError, file: file, line: line)
+                
+            // we can have success recived but failure expected and the opposite (cases not match )
+            default:
+                XCTFail("Expected Result \(expectedResult) got \(receivedResults) instead",  file: file, line: line)
+            }
+            exp.fulfill() //regardless of the result
+        }
 
         action()
 
-        XCTAssertEqual(capturedResults, [result], file: file, line: line)
+        wait(for: [exp], timeout: 1.0)
     }
 
     private class HTTPClientSpy: HTTPClient {
