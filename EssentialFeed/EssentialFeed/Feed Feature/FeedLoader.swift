@@ -13,6 +13,8 @@ public enum LoadFeedResult<Error: Swift.Error> {
 	case failure(Error)
 }
 
+///To git rid of these equatable requirement -> which needed in the XCTAsserts tests
+///so we need to not capture results anymore and compare the values we need to unwrap the Result type and compare the values inside the Results 
 extension LoadFeedResult: Equatable where Error: Equatable {}
 
 protocol FeedLoader {
