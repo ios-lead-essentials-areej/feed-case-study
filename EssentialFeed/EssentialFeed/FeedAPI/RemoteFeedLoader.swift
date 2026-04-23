@@ -9,7 +9,7 @@ import Foundation
 
 ///we set it as public, because other modules will use it and creat
 /// make it final: to prevent subclassing
-public final class RemoteFeedLoader {
+public final class RemoteFeedLoader: FeedLoader {
     private let url: URL
     private let client: HTTPClient
     
