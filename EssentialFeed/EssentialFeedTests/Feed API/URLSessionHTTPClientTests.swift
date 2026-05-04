@@ -8,20 +8,10 @@
 import XCTest
 import EssentialFeed
 
-///Replacing subclass strategy with protocol base strategy for mocking the URL session
-/// but it complicates production code, extra protocols only for test no need for it, which matches exactly the interface 
-protocol HTTPSession {
-    func dataTask(with url: URL, completionHandler: @escaping (Data?, URLResponse?, (any Error)?) -> Void) -> HTTPSessionTask
-}
-
-protocol HTTPSessionTask {
-    func resume()
-}
-
 final class URLSessionHTTPClient {
-    let session: HTTPSession
+    let session: URLSession
     
-    init(session: HTTPSession) {
+    init(session: URLSession = .shared) {
         self.session = session
     }
     
@@ -36,36 +26,27 @@ final class URLSessionHTTPClient {
 }
 
 final class URLSessionHTTPClientTests: XCTestCase {
-
-    ///here to test if the client is statring 'resuming'
-    func test_getFromURL_resumesDataTaskWithURL() {
-        let url = URL(string: "http://any-url.com")!
-        let session = HTTPSessionSpy()
-        let task = URLSessionDataTaskSpy()
-        session.stub(url: url, task: task)
-        
-        let sut = URLSessionHTTPClient(session: session)
-        
-        sut.get(from: url) { _ in }
-        
-        XCTAssertEqual(task.resumeCallCount, 1)
-    }
     
     func test_getFromURL_failsOnRequestError() {
+        //we need to register a class
+        URLProtocolStub.startInterceptingRequests()
         let url = URL(string: "http://any-url.com")!
-        let session = HTTPSessionSpy()
-        let task = URLSessionDataTaskSpy()
         let error = NSError(domain: "any error", code: 1)
-        session.stub(url: url, error: error)
+        URLProtocolStub.stub(url: url, error: error)
         
-        let sut = URLSessionHTTPClient(session: session)
+        let sut = URLSessionHTTPClient()
         
         let exp = expectation(description: "wait for completion")
         
         sut.get(from: url) { result in
             switch result {
             case let .failure(receivedError as NSError):
-                XCTAssertEqual(receivedError, error)
+                ///The error and the receivedError are different NSError instances, which is a new behavior on iOS 14+.
+                ///Since both error instances share the same domain and code, you could compare the errors by those values:
+                XCTAssertEqual(receivedError.domain, error.domain)
+                XCTAssertEqual(receivedError.code, error.code)
+                ///Or if you don’t care about the specific error values, you can just make sure it’s not nil:
+                XCTAssertNotNil(receivedError)
             default:
                 XCTFail("Expected Failutre with error \(error) and got \(result) instead")
             }
@@ -73,41 +54,62 @@ final class URLSessionHTTPClientTests: XCTestCase {
         }
         
         wait(for: [exp], timeout: 1.0)
+        //and we need to un register it after we finish because we don't want to be stubbing other tests requests
+        //this same a good candidate to move to setup tearDown per method but since its only one test we can leave it
+        URLProtocolStub.stopInterceptingRequest()
     }
     
     // MARK: - Helpers
     
-    private class HTTPSessionSpy: HTTPSession {
-        private var stubs = [URL: Sub]()
+    private class URLProtocolStub: URLProtocol {
+        private static var stubs = [URL: Sub]()
         
         private struct Sub {
-            let task: HTTPSessionTask
             let error: Error?
         }
         
-        func stub(url: URL, task: HTTPSessionTask = FakeURLSessionDataTask(), error: Error? = nil) {
-            stubs[url] = Sub(task: task, error: error)
+        static func stub(url: URL, error: Error? = nil) {
+            stubs[url] = Sub(error: error)
         }
         
-        func dataTask(with url: URL, completionHandler: @escaping (Data?, URLResponse?, (any Error)?) -> Void) -> HTTPSessionTask {
-            guard let sub = stubs[url] else {
-               fatalError("Couldn't find stub for \(url)")
+        static func startInterceptingRequests() {
+            URLProtocol.registerClass(URLProtocolStub.self)
+        }
+        
+        static func stopInterceptingRequest() {
+            URLProtocol.unregisterClass(URLProtocolStub.self)
+            stubs = [:]
+        }
+        
+        //URLProtocol testing network requested is to use the little-known URL Loading System to intercept and handle requests with URLProtocol stubs.
+        //it makes us intercept the request and control it
+        
+        //this func 'canInit' we return true if we can intercept the network request
+        override class func canInit(with request: URLRequest) -> Bool {
+            guard let url = request.url else { return false }
+            
+            return URLProtocolStub.stubs[url] != nil
+        }
+        
+        override class func canonicalRequest(for request: URLRequest) -> URLRequest {
+            return request
+        }
+        
+        //framwork accept that we are going to handle this request and its going to invoke us to say now it's time for you to start loading the url
+        override func startLoading() {
+            guard let url = request.url, let stub = URLProtocolStub.stubs[url] else { return }
+            
+            if let error = stub.error {
+                // this is URLProtocolClient with punch of methods we can use
+                client?.urlProtocol(self, didFailWithError: error)
             }
-            completionHandler(nil, nil, sub.error)
-            return sub.task
+            
+            //after we finish laoding
+            client?.urlProtocolDidFinishLoading(self)
         }
-    }
-    
-    private class FakeURLSessionDataTask: HTTPSessionTask {
-        ///also we had to override resume() here but we don't need it
-        func resume() {
-        }
-    }
-    private class URLSessionDataTaskSpy: HTTPSessionTask {
-        var resumeCallCount = 0
         
-        func resume() {
-            resumeCallCount += 1
+        override func stopLoading() {
+            // if we don't implement it will crash
         }
     }
 }
