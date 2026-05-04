@@ -14,6 +14,7 @@ final class URLSessionHTTPClient {
         self.session = session
     }
     
+    ///this is an issue to make our test we're modifiying the production code here but it should not
     func get(from url: URL) {
         session.dataTask(with: url, completionHandler: { _ ,_, _ in }).resume()
     }
@@ -21,17 +22,6 @@ final class URLSessionHTTPClient {
 
 final class URLSessionHTTPClientTests: XCTestCase {
 
-    ///here to test if the client is creating data task with correct url
-    func test_getFromURL_createDataTaskWithURL() {
-        let url = URL(string: "http://any-url.com")!
-        let session = URLSessionSpy()
-        let sut = URLSessionHTTPClient(session: session)
-        
-        sut.get(from: url)
-        
-        XCTAssertEqual(session.recievedURLs, [url])
-    }
-    
     ///here to test if the client is statring 'resuming'
     func test_getFromURL_resumesDataTaskWithURL() {
         let url = URL(string: "http://any-url.com")!
@@ -49,7 +39,6 @@ final class URLSessionHTTPClientTests: XCTestCase {
     // MARK: - Helpers
     
     private class URLSessionSpy: URLSession {
-        var recievedURLs = [URL]()
         private var stubs = [URL: URLSessionDataTask]()
         
         func stub(url: URL, task: URLSessionDataTask) {
@@ -57,13 +46,12 @@ final class URLSessionHTTPClientTests: XCTestCase {
         }
         
         override func dataTask(with url: URL, completionHandler: @escaping (Data?, URLResponse?, (any Error)?) -> Void) -> URLSessionDataTask {
-            recievedURLs.append(url)
             return stubs[url] ?? FakeURLSessionDataTask()
         }
     }
     
     private class FakeURLSessionDataTask: URLSessionDataTask {
-        
+        ///also we had to override resume() here but we don't need it
         override func resume() {
         }
     }
