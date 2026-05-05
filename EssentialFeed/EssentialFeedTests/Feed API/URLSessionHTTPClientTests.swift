@@ -90,13 +90,6 @@ final class URLSessionHTTPClientTests: XCTestCase {
         return sut
     }
     
-    private func trackForMemoryLeaks(_ instance: AnyObject, file: StaticString = #filePath,
-                                     line: UInt = #line) {
-        addTeardownBlock( { [weak instance] in
-            XCTAssertNil(instance, "Instnace should have been deallocated. Potiential memory leak.", file: file, line: line)
-        })
-    }
-    
     private class URLProtocolStub: URLProtocol {
         //we can intercept all reqests regarding the url,  no need for url
         private static var stub: Sub?
