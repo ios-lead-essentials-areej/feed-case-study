@@ -15,13 +15,17 @@ final class URLSessionHTTPClient {
         self.session = session
     }
     
+    struct UnexpectedValuesRepresentation: Error {}
+    
     ///this is an issue to make our test we're modifiying the production code here but it should not
-    func get(from url: URL, completionHandler: @escaping (HTTPClientResult) -> Void ) {
+    func get(from url: URL, completion: @escaping (HTTPClientResult) -> Void ) {
         //the issue of our tests now its sensitive to the correct url passing because we intercept only our url, but to enhance we can intercept all reqests regarding the url
         //also we want our assertion to be more precise about the error when they fail.
         session.dataTask(with: url, completionHandler: { _ ,_, error in
             if let error = error {
-                completionHandler(.failure(error))
+                completion(.failure(error))
+            } else {
+                completion(.failure(UnexpectedValuesRepresentation()))
             }
         }).resume()
     }
@@ -50,7 +54,7 @@ final class URLSessionHTTPClientTests: XCTestCase {
             exp.fulfill()
         }
         
-        makeSUT().get(from: url, completionHandler: {_ in })
+        makeSUT().get(from: url) {_ in }
         
         wait(for: [exp], timeout: 1.0)
     }
@@ -72,6 +76,24 @@ final class URLSessionHTTPClientTests: XCTestCase {
                 XCTAssertNotNil(receivedError)
             default:
                 XCTFail("Expected Failutre with error \(error) and got \(result) instead")
+            }
+            exp.fulfill()
+        }
+        
+        wait(for: [exp], timeout: 1.0)
+    }
+    
+    func test_getFromURL_failsOnAllNilValues() {
+        URLProtocolStub.stub(data: nil, response: nil, error: nil)
+                
+        let exp = expectation(description: "wait for completion")
+        
+        makeSUT().get(from: anyURL()) { result in
+            switch result {
+            case let .failure(receivedError as NSError):
+                break
+            default:
+                XCTFail("Expected Failutre, got \(result) instead")
             }
             exp.fulfill()
         }
