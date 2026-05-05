@@ -21,9 +21,11 @@ final class URLSessionHTTPClient {
     func get(from url: URL, completion: @escaping (HTTPClientResult) -> Void ) {
         //the issue of our tests now its sensitive to the correct url passing because we intercept only our url, but to enhance we can intercept all reqests regarding the url
         //also we want our assertion to be more precise about the error when they fail.
-        session.dataTask(with: url, completionHandler: { _ ,_, error in
+        session.dataTask(with: url, completionHandler: { data , response, error in
             if let error = error {
                 completion(.failure(error))
+            } else if let data, data.count > 0, let response = response as? HTTPURLResponse {
+                completion(.success(data, response))
             } else {
                 completion(.failure(UnexpectedValuesRepresentation()))
             }
@@ -106,6 +108,28 @@ final class URLSessionHTTPClientTests: XCTestCase {
         XCTAssertNotNil(resultErrorFor(data: anyData(),
                                        response: nonHTTPURLResponse(),
                                        error: nil))
+    }
+    
+    func test_getFromURL_succedsOnHTTPURLResponseWithData() {
+        let data = anyData()
+        let response = anyHTTPURLResponse()
+        URLProtocolStub.stub(data: data,
+                             response: response,
+                             error: nil)
+        let exp = expectation(description: "wait for completion")
+        
+        makeSUT().get(from: anyURL()) { result in
+            switch result {
+            case let .success(receivedData, receivedResponse):
+                XCTAssertEqual(receivedData, data)
+                XCTAssertEqual(receivedResponse.url, response.url)
+                XCTAssertEqual(receivedResponse.statusCode, response.statusCode)
+            default:
+                XCTFail("Expected Failutre, got \(result) instead")
+            }
+            exp.fulfill()
+        }
+        wait(for: [exp], timeout: 3.0)
     }
     
     // MARK: - Helpers
