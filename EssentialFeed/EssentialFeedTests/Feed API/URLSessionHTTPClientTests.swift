@@ -28,8 +28,19 @@ final class URLSessionHTTPClient {
 }
 
 final class URLSessionHTTPClientTests: XCTestCase {
-    func test_getFromURL_performsGetRequestWithURL() {
+    
+    //invoked before each test methods
+    override class func setUp() {
         URLProtocolStub.startInterceptingRequests()
+    }
+    
+    //invoked after each test methods
+    override class func tearDown() {
+        URLProtocolStub.stopInterceptingRequest()
+    }
+    
+    func test_getFromURL_performsGetRequestWithURL() {
+       
         
         let url = URL(string: "http://any-url.com")!
         let exp = expectation(description: "wait for completion")
@@ -43,12 +54,9 @@ final class URLSessionHTTPClientTests: XCTestCase {
         URLSessionHTTPClient().get(from: url, completionHandler: {_ in })
         
         wait(for: [exp], timeout: 1.0)
-        URLProtocolStub.stopInterceptingRequest()
     }
     
     func test_getFromURL_failsOnRequestError() {
-        //we need to register a class
-        URLProtocolStub.startInterceptingRequests()
         let url = URL(string: "http://any-url.com")!
         let error = NSError(domain: "any error", code: 1)
         URLProtocolStub.stub(data: nil, response: nil, error: error)
@@ -73,9 +81,6 @@ final class URLSessionHTTPClientTests: XCTestCase {
         }
         
         wait(for: [exp], timeout: 1.0)
-        //and we need to un register it after we finish because we don't want to be stubbing other tests requests
-        //this same a good candidate to move to setup tearDown per method but since its only one test we can leave it
-        URLProtocolStub.stopInterceptingRequest()
     }
     
     // MARK: - Helpers
