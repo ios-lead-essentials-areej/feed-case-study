@@ -233,7 +233,8 @@ final class URLSessionHTTPClientTests: XCTestCase {
         
         //this func 'canInit' we return true if we can intercept the network request
         override class func canInit(with request: URLRequest) -> Bool {
-            requestObserver?(request)
+            //we invoke requestObserver before the network start startLoading which means the test method will finish it's execution before the request event is started so we should move it
+//            requestObserver?(request)
             return true
         }
         
@@ -243,7 +244,12 @@ final class URLSessionHTTPClientTests: XCTestCase {
         
         //framwork accept that we are going to handle this request and its going to invoke us to say now it's time for you to start loading the url
         override func startLoading() {
-            
+            if let requestObserver = URLProtocolStub.requestObserver {
+                //if we have , we can stop loading and then invoke the observer with the request - solving data races 
+                client?.urlProtocolDidFinishLoading(self)
+                return requestObserver(request)
+            }
+           
             if let data = URLProtocolStub.stub?.data {
                 client?.urlProtocol(self, didLoad: data)
             }
