@@ -52,17 +52,18 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		9EF944E22FABDA03009DD485 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+		9E66066D2FB3C32B00F4F05C /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				"Helpers/XCTTestCase+MemoryLeakTracking.swift",
+				"XCTTestCase+MemoryLeakTracking.swift",
 			);
 			target = 9EF944D62FABD4A6009DD485 /* EssentialFeedAPIEndToEndTests */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		9E6E30C12F9A93C100EE7537 /* Feed API */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (9EF944E22FABDA03009DD485 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = "Feed API"; sourceTree = "<group>"; };
+		9E66066A2FB3C32B00F4F05C /* Helpers */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (9E66066D2FB3C32B00F4F05C /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = Helpers; sourceTree = "<group>"; };
+		9E6E30C12F9A93C100EE7537 /* Feed API */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "Feed API"; sourceTree = "<group>"; };
 		9EF944D82FABD4A6009DD485 /* EssentialFeedAPIEndToEndTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = EssentialFeedAPIEndToEndTests; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
@@ -127,8 +128,9 @@
 		080EDEFE21B6DA7E00813479 /* EssentialFeedTests */ = {
 			isa = PBXGroup;
 			children = (
-				9E6606662FB3BEE500F4F05C /* Feed Cache */,
 				080EDF0121B6DA7E00813479 /* Info.plist */,
+				9E66066A2FB3C32B00F4F05C /* Helpers */,
+				9E6606662FB3BEE500F4F05C /* Feed Cache */,
 				9E6E30C12F9A93C100EE7537 /* Feed API */,
 			);
 			path = EssentialFeedTests;
@@ -207,6 +209,7 @@
 				080EDEFD21B6DA7E00813479 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
+				9E66066A2FB3C32B00F4F05C /* Helpers */,
 				9E6E30C12F9A93C100EE7537 /* Feed API */,
 			);
 			name = EssentialFeedTests;
