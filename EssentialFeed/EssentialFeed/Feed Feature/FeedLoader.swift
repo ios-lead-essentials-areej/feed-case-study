@@ -9,7 +9,7 @@ import Foundation
 ///complicates alot our production codes , prod has no req of equatable 
 
 public enum LoadFeedResult {
-	case success([FeedItem])
+	case success([FeedImage])
 	case failure(Error)
 }
 
