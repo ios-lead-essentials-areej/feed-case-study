@@ -11,16 +11,20 @@ import Foundation
 // but the caching policy its a policy so its a business rule, need to be shared across use case and across applications, so its application agnostic, maybe its a legal rule , in our case its business rule
 // we can extract the business role into a seprarted model and can be used across applications across use cases
 
+// Policy is a rule and with no identity, and we separate business logic with identity by calling them entities, so entities are models with identity and valude objects are models with no identity, in this case the policy has no identity, its just encapsulate a rule and we don't need an instance of FeedCachePolicy, it can be static
+
 private final class FeedCachePolicy {
+    private init() {}
+    
     // but having currentDate dependencies can make it not deterministic on each use of FeedCachePolicy
     // so instead we can make it method injection
-    private let calender = Calendar(identifier: .gregorian)
+    private static let calender = Calendar(identifier: .gregorian)
  
-    private var maxCacheAgeInDays: Int {
+    private static var maxCacheAgeInDays: Int {
         return 7
     }
     
-    func validate(_ timestamp: Date, against date: Date) -> Bool {
+    static func validate(_ timestamp: Date, against date: Date) -> Bool {
         guard let maxCacheAge = calender.date(byAdding: .day, value: maxCacheAgeInDays, to: timestamp) else {
             return false
         }
@@ -31,7 +35,6 @@ private final class FeedCachePolicy {
 public final class LocalFeedLoader {
     private let store: FeedStore
     private let currentDate: () -> Date
-    private let cachePolicy = FeedCachePolicy()
     
     public init(store: FeedStore, currentDate: @escaping () -> Date) {
         self.store = store
@@ -74,7 +77,7 @@ extension LocalFeedLoader: FeedLoader {
             case let .failure(error):
                 completion(.failure(error))
                 
-            case let .found(feed, timestamp) where cachePolicy.validate(timestamp, against: self.currentDate()):
+            case let .found(feed, timestamp) where FeedCachePolicy.validate(timestamp, against: self.currentDate()):
                 completion(.success(feed.toModels()))
                 
             case .found, .empty:
@@ -93,7 +96,7 @@ extension LocalFeedLoader {
             case .failure:
                 self.store.deleteCachedFeed { _ in }
                 
-            case let .found(_, timestamp) where !cachePolicy.validate(timestamp, against: self.currentDate()):
+            case let .found(_, timestamp) where !FeedCachePolicy.validate(timestamp, against: self.currentDate()):
                 self.store.deleteCachedFeed { _ in }
                 
             case .empty, .found: break
