@@ -8,7 +8,7 @@
 import XCTest
 import EssentialFeed
 
-class CodableFeedStore {
+class CodableFeedStore: FeedStore {
     private struct Cache: Codable {
         // we conform 'LocalFeedImage' to codable which is a framework-specific codable requirement which is wrong, if we allow framework details to get in our framework agnostic types, we're going towards rigid town,so we should create our own model 'CodableFeedImage'
         let feed: [CodableFeedImage]
@@ -43,10 +43,10 @@ class CodableFeedStore {
     init(storeURL: URL) {
         self.storeURL = storeURL
     }
-
-    func retrieve(completion: @escaping FeedStore.RetrievalCompletion) {
+    
+    func retrieve(completion: @escaping RetrievalCompletion) {
         guard let data = try? Data(contentsOf: storeURL) else {  return completion(.empty) }
-       
+        
         do {
             let decoder = JSONDecoder()
             let cache = try decoder.decode(Cache.self, from: data)
@@ -56,7 +56,7 @@ class CodableFeedStore {
         }
     }
     
-    func insert(_ feed: [LocalFeedImage], timestamp: Date, completion: @escaping FeedStore.InsertionCompletion) {
+    func insert(_ feed: [LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
         do  {
             let encoder = JSONEncoder()
             let cache = Cache(feed: feed.map(CodableFeedImage.init), timestamp: timestamp)
@@ -68,7 +68,7 @@ class CodableFeedStore {
         }
     }
     
-    func deleteCachedFeed(completion: @escaping FeedStore.DeletionCompletion) {
+    func deleteCachedFeed(completion: @escaping DeletionCompletion) {
         guard FileManager.default.fileExists(atPath: storeURL.path) else {
             return completion(nil)
         }
