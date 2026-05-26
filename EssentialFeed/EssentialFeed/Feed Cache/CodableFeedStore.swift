@@ -7,7 +7,7 @@
 
 import Foundation
 
-public class CodableFeedStore: FeedStore {
+public final class CodableFeedStore: FeedStore {
     private struct Cache: Codable {
         // we conform 'LocalFeedImage' to codable which is a framework-specific codable requirement which is wrong, if we allow framework details to get in our framework agnostic types, we're going towards rigid town,so we should create our own model 'CodableFeedImage'
         let feed: [CodableFeedImage]
