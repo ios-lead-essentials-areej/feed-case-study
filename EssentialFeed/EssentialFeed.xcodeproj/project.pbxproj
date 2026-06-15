@@ -12,6 +12,7 @@
 		080EDF0E21B6DCB600813479 /* FeedLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 080EDF0D21B6DCB600813479 /* FeedLoader.swift */; };
 		9E144C2E2FAAB6F600C14D63 /* URLSessionHTTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E144C2D2FAAB6EF00C14D63 /* URLSessionHTTPClient.swift */; };
 		9E62BECA2FD8ADBF00025322 /* EssentialFeed.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 080EDEF121B6DA7E00813479 /* EssentialFeed.framework */; };
+		9E62BED22FD8B87800025322 /* FeedCacheTestHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E660ABF2FB9EAEF00F4F05C /* FeedCacheTestHelpers.swift */; };
 		9E6606682FB3BF0900F4F05C /* CacheFeedUseCaseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E6606672FB3BF0900F4F05C /* CacheFeedUseCaseTests.swift */; };
 		9E6606B02FB50F6E00F4F05C /* LocalFeedLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E6606AF2FB50F6D00F4F05C /* LocalFeedLoader.swift */; };
 		9E6606B22FB5101300F4F05C /* FeedStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E6606B12FB5101200F4F05C /* FeedStore.swift */; };
@@ -108,6 +109,7 @@
 		9E62BED12FD8B42F00025322 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				SharedTestHelpers.swift,
 				"XCTTestCase+MemoryLeakTracking.swift",
 			);
 			target = 9E62BEC52FD8ADBF00025322 /* EssentialFeedCacheIntegrationTests */;
@@ -524,6 +526,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9E62BED22FD8B87800025322 /* FeedCacheTestHelpers.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
