@@ -12,6 +12,18 @@ import EssentialFeed
 // so far we've been testing them in isolation by using test doubles but now e need to see how they behave when collaborating with real instances of the production types.
  class EssentialFeedCacheIntegrationTests: XCTestCase {
 
+     override func setUp() {
+         super.setUp()
+         
+         setupEmptyStoreState()
+     }
+     
+     override func tearDown() {
+         super.tearDown()
+         
+         undoStoreSideEffects()
+     }
+     
      func test_load_deliversNoItemsOnEmptyCache() {
          let sut = makeSUT()
          
@@ -32,6 +44,7 @@ import EssentialFeed
      
      // MARK: Helpers
      
+     // here we're integrating CoreDataFeedStore with LocalFeedLoader
      private func makeSUT(file: StaticString = #file, line: UInt = #line) -> LocalFeedLoader {
          let storeBundle = Bundle(for: CoreDataFeedStore.self)
          let storeURL = testSpecificStoreURL()
@@ -40,6 +53,18 @@ import EssentialFeed
          trackForMemoryLeaks(store, file: file, line: line)
          trackForMemoryLeaks(sut, file: file, line: line)
          return sut
+     }
+     
+     private func setupEmptyStoreState() {
+         deleteStoreArtifacts()
+     }
+     
+     private func undoStoreSideEffects() {
+         deleteStoreArtifacts()
+     }
+     
+     private func deleteStoreArtifacts() {
+         try? FileManager.default.removeItem(at: testSpecificStoreURL())
      }
      
      //we're using physical file URL to make sure we can create and load coreData SQLite artifacts to disk, which can slow down the tests
