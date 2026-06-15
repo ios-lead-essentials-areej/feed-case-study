@@ -42,6 +42,36 @@ import EssentialFeed
          wait(for: [exp], timeout: 1.0)
      }
      
+     // load method should delivers items saved on separate instances, proving that we're storing things to disk and another instance can fetch that data from disk, which also proves that we're storing data across application runs
+     // coreData unit tests uses an in memory representation of the data, so having tow instaces would generate tow separate memory spaces completely isolated, now in integration we can actually save data to disk and use another instance to fetch it proving that the whole caching dance works accordingly
+     
+     func test_load_deliversItemsSavedOnASeparateInstance() {
+         let sutToPerformSave = makeSUT()
+         let sutToPerformLoad = makeSUT()
+         let feed = uniqueImageFeed().models
+         
+         let saveExp = expectation(description: "Wait for save completion")
+         sutToPerformSave.save(feed) { saveError in
+             XCTAssertNil(saveError, "Expected to save feed successfully")
+             saveExp.fulfill()
+         }
+         wait(for: [saveExp], timeout: 1.0)
+         
+         let loadExp = expectation(description: "Wait for load completion")
+         sutToPerformLoad.load { loadResult in
+             switch loadResult {
+             case let .success(imageFeed):
+                 XCTAssertEqual(imageFeed, feed)
+                 
+             case let .failure(error):
+                 XCTFail("Expected successful feed result, got \(error) instead")
+             }
+             
+             loadExp.fulfill()
+         }
+         wait(for: [loadExp], timeout: 1.0)
+     }
+     
      // MARK: Helpers
      
      // here we're integrating CoreDataFeedStore with LocalFeedLoader
