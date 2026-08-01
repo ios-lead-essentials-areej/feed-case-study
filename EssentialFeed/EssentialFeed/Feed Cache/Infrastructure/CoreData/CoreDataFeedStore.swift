@@ -40,6 +40,7 @@ public final class CoreDataFeedStore: FeedStore {
                 try context.save()
                 completion(nil)
             } catch {
+                context.rollback()
                 completion(error)
             }
         }
@@ -51,6 +52,10 @@ public final class CoreDataFeedStore: FeedStore {
                 try ManagedCache.find(in: context).map(context.delete).map(context.save)
                 completion(nil)
             } catch {
+                ///rollback -> discards all unsaved changes in the managed object context, reverting it to the last saved state. Inserted objects are removed, deleted objects are restored,
+                ///and modified objects have their property values reset to what they were at the last save (or since the context was created, if never saved).
+                ///Any pending changes tracked by the context are cleared.
+                context.rollback()
                 completion(error)
             }
         }

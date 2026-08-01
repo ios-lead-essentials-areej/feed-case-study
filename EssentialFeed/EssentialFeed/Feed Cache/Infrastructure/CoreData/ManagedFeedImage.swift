@@ -17,6 +17,9 @@ internal class ManagedFeedImage: NSManagedObject {
 }
 
 extension ManagedFeedImage {
+    /// Local → Managed (the write path)
+    /// It creates Core Data objects, so it needs an NSManagedObjectContext: ManagedFeedImage(context:) inserts each object into the context as a side effect.
+    /// factory. It returns NSOrderedSet because that's what the feed relationship's type is (ordered, to preserve feed order).
     internal static func images(from localFeed: [LocalFeedImage], in context: NSManagedObjectContext) -> NSOrderedSet {
         return NSOrderedSet(array: localFeed.map { local in
             let managed = ManagedFeedImage(context: context)
@@ -28,6 +31,9 @@ extension ManagedFeedImage {
         })
     }
     
+    /// Managed → Local (the read path)
+    /// It reads an existing managed object and produces a plain value type. No context needed, no insertion, no side effects —
+    /// it's just a projection. It's an instance property because you always have a ManagedFeedImage in hand.
     internal var local: LocalFeedImage {
         return LocalFeedImage(id: id, description: imageDescription, location: location, url: url)
     }
