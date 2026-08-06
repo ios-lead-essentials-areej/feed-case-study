@@ -18,46 +18,32 @@ public final class CoreDataFeedStore: FeedStore {
 
     public func retrieve(completion: @escaping RetrievalCompletion) {
         perform { context in
-            do {
-                if let cache = try ManagedCache.find(in: context) {
-                    completion(.success((CachedFeed(feed: cache.localFeed, timestamp: cache.timestamp))))
-                } else {
-                    completion(.success(.none))
+            ///since Result(catching) is throw no need to explicitly set .success or .failure just return directly
+            ///and we can map ManagedCache
+            completion(Result(catching: {
+                try ManagedCache.find(in: context).map {
+                   return CachedFeed(feed: $0.localFeed, timestamp: $0.timestamp)
                 }
-            } catch {
-                completion(.failure(error))
-            }
+            }))
         }
     }
     
     public func insert(_ feed: [LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
         perform { context in
-            do {
+            completion(Result {
                 let managedCache = try ManagedCache.newUniqueInstance(in: context)
                 managedCache.timestamp = timestamp
                 managedCache.feed = ManagedFeedImage.images(from: feed, in: context)
-                
                 try context.save()
-                completion(.success(()))
-            } catch {
-                context.rollback()
-                completion(.failure(error))
-            }
+            })
         }
     }
 
     public func deleteCachedFeed(completion: @escaping DeletionCompletion) {
         perform { context in
-            do {
+            completion(Result {
                 try ManagedCache.find(in: context).map(context.delete).map(context.save)
-                completion(.success(()))
-            } catch {
-                ///rollback -> discards all unsaved changes in the managed object context, reverting it to the last saved state. Inserted objects are removed, deleted objects are restored,
-                ///and modified objects have their property values reset to what they were at the last save (or since the context was created, if never saved).
-                ///Any pending changes tracked by the context are cleared.
-                context.rollback()
-                completion(.failure(error))
-            }
+            })
         }
     }
 
