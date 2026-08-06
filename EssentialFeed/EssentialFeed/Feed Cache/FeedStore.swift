@@ -7,16 +7,19 @@
 
 import Foundation
 
-public enum RetriveCachedResult {
-    case empty
-    case found(feed: [LocalFeedImage], timestamp: Date)
-    case failure(Error)
-}
+/// CachedFeed is similar to Swift.Optional Standard, the absence of it will be declared by using it as Optional, found -> some, empty -> none
+/// instead of struct with public init, we can make it typealias with tuple value
+public typealias CachedFeed = (feed: [LocalFeedImage], timestamp: Date)
 
 public protocol FeedStore {
-    typealias DeletionCompletion = (Error?) -> Void
-    typealias InsertionCompletion = (Error?) -> Void
-    typealias RetrievalCompletion = (RetriveCachedResult) -> Void
+    typealias DeletionResult = Result<Void,Error>
+    typealias DeletionCompletion = (DeletionResult) -> Void
+    
+    typealias InsertionResult = Result<Void,Error>
+    typealias InsertionCompletion = (InsertionResult) -> Void
+    
+    typealias RetrivalResult = Result<CachedFeed?, Error>
+    typealias RetrievalCompletion = (FeedStore.RetrivalResult) -> Void
     
     /// The completion handler can be invoked in any thread.
     /// Clients are responsible to dispatch to appropriate threads, if needed.
