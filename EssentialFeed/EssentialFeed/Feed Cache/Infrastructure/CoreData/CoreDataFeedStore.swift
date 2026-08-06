@@ -62,7 +62,7 @@ public final class CoreDataFeedStore: FeedStore {
     }
 
     private func perform(_ action: @escaping (NSManagedObjectContext) -> Void) {
-        let context = self.context
-        context.perform { action(context) }
+       /// A shorter way to achieve the same result is by using the capture list
+        context.perform { [context] in action(context) }
     }
 }
